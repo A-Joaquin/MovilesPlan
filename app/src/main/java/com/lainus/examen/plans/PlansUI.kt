@@ -27,12 +27,19 @@ import com.lainus.domain.Plan
 import com.lainus.examen.R
 import kotlinx.coroutines.launch
 import com.lainus.examen.utils.WhatsAppHelper
+import androidx.navigation.NavHostController
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlansUI(
+    navController: NavHostController,
     viewModel: PlansViewModel = hiltViewModel()
 ) {
+    println("🚨 DEBUG: PlansUI iniciado")
+    println("🚨 DEBUG: NavController recibido: $navController")
+    println("🚨 DEBUG: NavController.graph: ${navController.graph}")
+    println("🚨 DEBUG: Destinos disponibles: ${navController.graph.map { it.route }}")
+    println("🚨 DEBUG: Destino actual: ${navController.currentDestination?.route}")
+
     val state by viewModel.state.collectAsState()
     val currentIndex by viewModel.currentPlanIndex.collectAsState()
     val context = LocalContext.current
@@ -55,7 +62,8 @@ fun PlansUI(
                     onPlanIndexChanged = viewModel::onPlanIndexChanged,
                     onPlanSelected = viewModel::onPlanSelected,
                     viewModel = viewModel,
-                    context = context
+                    context = context,
+                    navController=navController
                 )
             }
             is PlansViewModel.PlansState.Error -> {
@@ -77,7 +85,8 @@ private fun PlansContent(
     onPlanIndexChanged: (Int) -> Unit,
     onPlanSelected: (Plan) -> Unit,
     viewModel: PlansViewModel,
-    context: android.content.Context
+    context: android.content.Context,
+    navController: NavHostController
 ) {
     val pagerState = rememberPagerState(pageCount = { plans.size })
     val coroutineScope = rememberCoroutineScope()
@@ -116,7 +125,8 @@ private fun PlansContent(
             ) { page ->
                 PlanCard(
                     plan = plans[page],
-                    onSelectPlan = { onPlanSelected(plans[page]) }
+                    onSelectPlan = { onPlanSelected(plans[page]) },
+                    navController = navController
                 )
             }
 
@@ -183,7 +193,6 @@ private fun PlansContent(
 
         FloatingActionButton(
             onClick = {
-                // Quitar la verificación del plan ya que no lo necesitas
                 WhatsAppHelper.openWhatsApp(context)
             },
             containerColor = Color(0xFF25D366),
@@ -203,7 +212,8 @@ private fun PlansContent(
 @Composable
 private fun PlanCard(
     plan: Plan,
-    onSelectPlan: () -> Unit
+    onSelectPlan: () -> Unit,
+    navController: NavHostController
 ) {
     Card(
         modifier = Modifier
@@ -318,8 +328,12 @@ private fun PlanCard(
                 }
             }
 
+
             Button(
-                onClick = onSelectPlan,
+                onClick = {
+                    onSelectPlan()
+                    navController.navigate("shipping_screen")
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
@@ -332,13 +346,8 @@ private fun PlanCard(
                     text = "Quiero este plan",
                     fontSize = 14.sp,
                     modifier = Modifier.weight(1f),
-                    textAlign = TextAlign.Center
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_whatsapp),
-                    contentDescription = "WhatsApp",
-                    tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    textAlign = TextAlign.Center,
+                    color = Color.White
                 )
             }
         }

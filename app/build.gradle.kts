@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kotlinSerialization)
 }
+
 android {
     namespace = "com.lainus.examen"
     compileSdk = 35
@@ -30,18 +31,24 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
+        // Agregar esta línea para suprimir warnings de APIs experimentales
+        freeCompilerArgs += listOf(
+            "-opt-in=com.google.accompanist.permissions.ExperimentalPermissionsApi"
+        )
     }
+
     buildFeatures {
         compose = true
     }
 }
-
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -88,9 +95,12 @@ dependencies {
 
     implementation(libs.hilt.navigation.compose)
 
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+    implementation(libs.play.services.location)
+    implementation(libs.accompanist.permissions)
 }
 
 kapt {
     correctErrorTypes = true
 }
-
