@@ -26,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.lainus.domain.Plan
 import com.lainus.examen.R
 import kotlinx.coroutines.launch
+import com.lainus.examen.utils.WhatsAppHelper
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -34,6 +35,7 @@ fun PlansUI(
 ) {
     val state by viewModel.state.collectAsState()
     val currentIndex by viewModel.currentPlanIndex.collectAsState()
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -51,7 +53,9 @@ fun PlansUI(
                     plans = currentState.plans,
                     currentIndex = currentIndex,
                     onPlanIndexChanged = viewModel::onPlanIndexChanged,
-                    onPlanSelected = viewModel::onPlanSelected
+                    onPlanSelected = viewModel::onPlanSelected,
+                    viewModel = viewModel,
+                    context = context
                 )
             }
             is PlansViewModel.PlansState.Error -> {
@@ -71,7 +75,9 @@ private fun PlansContent(
     plans: List<Plan>,
     currentIndex: Int,
     onPlanIndexChanged: (Int) -> Unit,
-    onPlanSelected: (Plan) -> Unit
+    onPlanSelected: (Plan) -> Unit,
+    viewModel: PlansViewModel,
+    context: android.content.Context
 ) {
     val pagerState = rememberPagerState(pageCount = { plans.size })
     val coroutineScope = rememberCoroutineScope()
@@ -85,7 +91,6 @@ private fun PlansContent(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header fuera del card
             Text(
                 text = "Nuestros planes móviles",
                 color = Color(0xFFFF5252),
@@ -103,7 +108,6 @@ private fun PlansContent(
                     .padding(horizontal = 32.dp, vertical = 8.dp)
             )
 
-            // Pager con los cards
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f),
@@ -116,7 +120,6 @@ private fun PlansContent(
                 )
             }
 
-            // Page indicators
             Row(
                 modifier = Modifier
                     .padding(bottom = 24.dp),
@@ -136,7 +139,6 @@ private fun PlansContent(
             }
         }
 
-        // Navigation buttons
         if (currentIndex > 0) {
             IconButton(
                 onClick = {
@@ -179,24 +181,21 @@ private fun PlansContent(
             }
         }
 
-        // Page indicators
-        Row(
+        FloatingActionButton(
+            onClick = {
+                // Quitar la verificación del plan ya que no lo necesitas
+                WhatsAppHelper.openWhatsApp(context)
+            },
+            containerColor = Color(0xFF25D366),
+            contentColor = Color.White,
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.Center
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
         ) {
-            plans.indices.forEach { index ->
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(if (index == currentIndex) 24.dp else 8.dp, 8.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(
-                            if (index == currentIndex) Color(0xFFFF5252) else Color(0xFFCCCCCC)
-                        )
-                )
-            }
+            Icon(
+                painter = painterResource(id = R.drawable.ic_whatsapp),
+                contentDescription = "WhatsApp"
+            )
         }
     }
 }
@@ -220,7 +219,6 @@ private fun PlanCard(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Plan name
             Text(
                 text = plan.name,
                 color = Color(0xFFFF5252),
@@ -228,7 +226,6 @@ private fun PlanCard(
                 fontWeight = FontWeight.Bold
             )
 
-            // Price section
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(top = 16.dp)
@@ -286,7 +283,6 @@ private fun PlanCard(
                 )
             }
 
-            // Features
             Column(
                 modifier = Modifier
                     .padding(top = 16.dp)
@@ -313,7 +309,6 @@ private fun PlanCard(
                 }
             }
 
-            // Social networks
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -323,7 +318,6 @@ private fun PlanCard(
                 }
             }
 
-            // Select button
             Button(
                 onClick = onSelectPlan,
                 modifier = Modifier

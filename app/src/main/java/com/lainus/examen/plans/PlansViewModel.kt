@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import androidx.compose.runtime.mutableStateOf
+
 
 @HiltViewModel
 class PlansViewModel @Inject constructor(
@@ -51,8 +53,10 @@ class PlansViewModel @Inject constructor(
         _currentPlanIndex.value = index
     }
 
+    private val _selectedPlan = mutableStateOf<Plan?>(null)
+    val selectedPlan: Plan? get() = _selectedPlan.value
+
     fun onPlanSelected(plan: Plan) {
-        // Aquí puedes manejar la selección del plan
-        // Por ejemplo, navegar a WhatsApp o a otra pantalla
+        _selectedPlan.value = plan
     }
 }
