@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.hilt.navigation.compose)
+
 }
 
 kapt {

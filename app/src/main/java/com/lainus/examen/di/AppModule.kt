@@ -1,13 +1,12 @@
 package com.lainus.examen.di
 
-import android.content.Context
-import com.lainus.data.BookRepository
-import com.lainus.data.book.IBookLocalDataSource
-import com.lainus.data.book.IBookRemoteDataSource
-import com.lainus.framework.service.RetrofitClient
-import com.lainus.framework.book.BookRemoteDataSource
-import com.lainus.framework.book.BookLocalDataSource
-import com.lainus.usecases.SearchBooks
+
+
+import com.lainus.data.PlanRepository
+import com.lainus.data.plan.IPlanDataSource
+import com.lainus.usecases.GetPlans
+import com.lainus.framework.plan.PlanDataSource
+
 
 import dagger.Module
 import dagger.Provides
@@ -21,44 +20,24 @@ import javax.inject.Singleton
 object ppModule {
 
 
-    @Provides
-    @Singleton
-    fun provideRetrofitClient(): RetrofitClient = RetrofitClient
+
 
     @Provides
     @Singleton
-    fun provideBookRemoteDataSource(retrofitClient: RetrofitClient): IBookRemoteDataSource {
-        return BookRemoteDataSource(retrofitClient)
+    fun providePlanDataSource(): IPlanDataSource {
+        return PlanDataSource()
     }
 
     @Provides
     @Singleton
-    fun provideBookRepository(remoteDataSource: IBookRemoteDataSource, localDataSource: IBookLocalDataSource): BookRepository {
-        return BookRepository(remoteDataSource, localDataSource)
+    fun providePlanRepository(dataSource: IPlanDataSource): PlanRepository {
+        return PlanRepository(dataSource)
     }
 
     @Provides
     @Singleton
-    fun provideSearchBooks(repository: BookRepository): SearchBooks {
-        return SearchBooks(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideBookLocalDataSource(@ApplicationContext context: Context) : IBookLocalDataSource {
-        return BookLocalDataSource(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideAddToMyFavorites(repository: BookRepository): AddFavorites {
-        return AddFavorites(repository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGetMyFavoriteBooks(repository: BookRepository): GetFavoriteBooks {
-        return GetFavoriteBooks(repository)
+    fun provideGetPlans(planRepository: PlanRepository): GetPlans {
+        return GetPlans(planRepository)
     }
 
 }
