@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
@@ -217,6 +218,28 @@ private fun LocationSection(
 ) {
     val context = LocalContext.current
 
+    // Estado para controlar el zoom del mapa
+    val defaultLocation = LatLng(-16.5000, -68.1500) // Centro de Bolivia
+    val currentLocation = if (latitude != 0.0 && longitude != 0.0) {
+        LatLng(latitude, longitude)
+    } else {
+        defaultLocation
+    }
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(currentLocation, if (latitude != 0.0 && longitude != 0.0) 16f else 6f)
+    }
+
+    // Efecto para animar la cámara cuando cambie la ubicación
+    LaunchedEffect(latitude, longitude) {
+        if (latitude != 0.0 && longitude != 0.0) {
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(LatLng(latitude, longitude), 16f),
+                durationMs = 1000
+            )
+        }
+    }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp) // Reducir espacio
     ) {
@@ -237,7 +260,7 @@ private fun LocationSection(
                 label = { Text("Latitud", fontSize = 12.sp) }, // Texto más pequeño
                 readOnly = true,
                 modifier = Modifier.weight(1f),
-                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp) // Texto más pequeño
+                textStyle = TextStyle(fontSize = 14.sp) // Texto más pequeño
             )
             OutlinedTextField(
                 value = if (longitude != 0.0) "%.4f".format(longitude) else "", // Formato más corto
@@ -245,7 +268,7 @@ private fun LocationSection(
                 label = { Text("Longitud", fontSize = 12.sp) }, // Texto más pequeño
                 readOnly = true,
                 modifier = Modifier.weight(1f),
-                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp) // Texto más pequeño
+                textStyle = TextStyle(fontSize = 14.sp) // Texto más pequeño
             )
         }
 
@@ -260,6 +283,7 @@ private fun LocationSection(
                 if (hasLocationPermission) {
                     getCurrentLocation(context) { lat, lng ->
                         onLocationChange(lat, lng)
+                        // El zoom automático se manejará en LaunchedEffect
                     }
                 } else {
                     locationPermissionLauncher.launch(
@@ -284,11 +308,12 @@ private fun LocationSection(
             Text("Obtener mi ubicación", color = Color.White)
         }
 
-        // Mapa
+        // Mapa con estado de cámara controlado
         MapSection(
             latitude = latitude,
             longitude = longitude,
-            onLocationSelected = onLocationChange
+            onLocationSelected = onLocationChange,
+            cameraPositionState = cameraPositionState
         )
     }
 }
@@ -297,7 +322,8 @@ private fun LocationSection(
 private fun MapSection(
     latitude: Double,
     longitude: Double,
-    onLocationSelected: (Double, Double) -> Unit
+    onLocationSelected: (Double, Double) -> Unit,
+    cameraPositionState: CameraPositionState
 ) {
     var mapProperties by remember {
         mutableStateOf(
@@ -306,18 +332,6 @@ private fun MapSection(
                 mapStyleOptions = null
             )
         )
-    }
-
-    // Centrar en Bolivia por defecto (La Paz)
-    val defaultLocation = LatLng(-16.5000, -68.1500) // Centro de Bolivia
-    val currentLocation = if (latitude != 0.0 && longitude != 0.0) {
-        LatLng(latitude, longitude)
-    } else {
-        defaultLocation
-    }
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(currentLocation, 6f) // Zoom 6 para ver todo Bolivia
     }
 
     Card(
